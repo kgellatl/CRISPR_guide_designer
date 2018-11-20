@@ -219,5 +219,5 @@ find_guides <- function(input, nuclease_table, stringency = 5){
   return(trimmed_guides)
 }
 
-guides <- find_guides(input = mutant_data_2, nuclease_table = CRISPR_Nuclease_Table, stringency = 5)
+guides <- find_guides(input = mutant_data, nuclease_table = CRISPR_Nuclease_Table, stringency = 5)
 guides
