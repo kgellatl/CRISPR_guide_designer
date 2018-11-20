@@ -26,7 +26,6 @@ find_guides <- function(input, nuclease_table, stringency = 5){
 
   #Forward
   guides_f <- vector(mode = "list", length = nrow(nuclease_table))
-
   for (i in 1:nrow(nuclease_table)) {
     int_nuc <- nuclease_table[i,]
     pam <- as.character(int_nuc$PAM)
@@ -84,10 +83,8 @@ find_guides <- function(input, nuclease_table, stringency = 5){
     }
   }
 
-
   #Reverse
   guides_r <- vector(mode = "list", length = nrow(nuclease_table))
-
   for (i in 1:nrow(nuclease_table)) {
     int_nuc <- nuclease_table[i,]
     pam <- as.character(int_nuc$PAM)
@@ -157,12 +154,10 @@ find_guides <- function(input, nuclease_table, stringency = 5){
   guide_table[match(unlist(guides_f), as.character(guide_table[,1])),3] <- "+"
   guide_table[match(unlist(guides_r), as.character(guide_table[,1])),3] <- "-"
 
-
   guide_table[,4] <- matrix(unlist(strsplit(as.character(guide_table[,1]), split = "_")), ncol = 5, byrow = T)[,2]
   guide_table[,5] <- matrix(unlist(strsplit(as.character(guide_table[,1]), split = "_")), ncol = 5, byrow = T)[,3]
   guide_table[,6] <- matrix(unlist(strsplit(as.character(guide_table[,1]), split = "_")), ncol = 5, byrow = T)[,4]
   guide_table[,7] <- matrix(unlist(strsplit(as.character(guide_table[,1]), split = "_")), ncol = 5, byrow = T)[,5]
-
 
   for (i in 1:nrow(guide_table)) {
     for (j in 1:length(unique(nuclease_table)$Name)) {
@@ -176,8 +171,6 @@ find_guides <- function(input, nuclease_table, stringency = 5){
     }
   }
 
-
-
  if(ncol(dat) == 1){
    trimmed_guides <- guide_table
    trimmed_guides[,1] <- matrix(unlist(strsplit(as.character(guide_table[,1]), split = "_")), ncol = 5, byrow = T)[,1]
@@ -188,34 +181,23 @@ find_guides <- function(input, nuclease_table, stringency = 5){
    colnames(trimmed_guides3) <- c("Spacer_seq", "PAM", "Nuclease", "Strand")
    trimmed_guides <- trimmed_guides3
    rownames(trimmed_guides) <- seq(1:nrow(trimmed_guides))
-
-
  } else {
-
    trimmed_guides <- guide_table
    trimmed_guides[,1] <- matrix(unlist(strsplit(as.character(guide_table[,1]), split = "_")), ncol = 5, byrow = T)[,1]
    trimmed_guides[,8] <- paste0(trimmed_guides[,1], trimmed_guides[,5])
-
    unique_guides <- unique(trimmed_guides[,8])
-
    trimmed_guides2 <- trimmed_guides[match(unique_guides, trimmed_guides[,8]),]
-
    for (i in 1:nrow(trimmed_guides2)){
      int <- trimmed_guides2[i,"V8"]
      ind <- grep(paste0("^", int, "$"), trimmed_guides$V8)
      name <- paste0(trimmed_guides$V4[ind], collapse = "_")
      trimmed_guides2$V4[i] <- name
    }
-
    trimmed_guides <- trimmed_guides2
    trimmed_guides <- trimmed_guides[,c(1,5,2,7,6,3,4)]
    colnames(trimmed_guides) <- c("Spacer_seq", "PAM", "Nuclease", "SNP_PAM", "Cut_SNP", "Strand", "Genotype")
    rownames(trimmed_guides) <- seq(1:nrow(trimmed_guides))
-
  }
-
-
-
   return(trimmed_guides)
 }
 
