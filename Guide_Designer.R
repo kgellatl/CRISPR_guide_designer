@@ -77,7 +77,7 @@ find_guides <- function(input, nuclease_table, stringency = 10, remove_wt = T){
             if(cut_from_pam < 0){
               cut_pos <- start_pam+cut_from_pam
               ##### CHECK GUIDE BOUNDARY
-              if((start_pam-guide_size) > 0){
+              if(start_pam-guide_size > 0 && end_pam+guide_size < nrow(dat)){
                 ##### PAM TO LEFT OF MUT
                 if(end_pam < int_mut){
                   pam_dist <- int_mut-end_pam
@@ -121,7 +121,7 @@ find_guides <- function(input, nuclease_table, stringency = 10, remove_wt = T){
             } else {
               cut_pos <- end_pam+cut_from_pam
               ##### CHECK GUIDE BOUNDARY
-              if((end_pam+guide_size) > 0){
+              if(end_pam+guide_size < nrow(dat) && start_pam-guide_size > 0 ){
                 ##### PAM TO LEFT OF MUT
                 if(end_pam < int_mut){
                   pam_dist <- int_mut-end_pam
@@ -174,9 +174,11 @@ find_guides <- function(input, nuclease_table, stringency = 10, remove_wt = T){
   guides_format$Genotype[minus] <- matrix(unlist(strsplit(as.character(guides_format$Genotype[minus]), split = "_")), ncol = 2, byrow = T)[,2]
   ##### FIND UNIQUE GUIDES FOR SINGLE INPUT
   if(ncol(dat) == 2){
-    guides_format <- guides_format[,1:6]
-    ogs <- unique(guides_format$Spacer)
-    guides_format_unique <- guides_format[match(ogs,guides_format$Spacer),]
+    guides_format <- guides_format[,c(1,2,3,6)]
+    full_guide <- apply(guides_format[,1:2],1,paste0, collapse = "")
+    ogs <- unique(full_guide)
+    keep <- match(ogs, full_guide)
+    guides_format <- guides_format[keep,]
     ##### FIND UNIQUE GUIDES FOR MULTIPLE INPUT
   } else {
     guides_format <- guides_format[,1:7]
@@ -205,5 +207,5 @@ find_guides <- function(input, nuclease_table, stringency = 10, remove_wt = T){
   return(guides_format)
 }
 
-guides <- find_guides(mutant_data_2,nuclease_table = CRISPR_Nuclease_Table, remove_wt = F)
+guides <- find_guides(mutant_data_2[1,],nuclease_table = CRISPR_Nuclease_Table, remove_wt = F)
 View(guides)
