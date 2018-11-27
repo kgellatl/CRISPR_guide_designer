@@ -125,7 +125,7 @@ find_guides <- function(input, nuclease_table, stringency = 10, remove_wt = T){
                 ##### PAM TO LEFT OF MUT
                 if(end_pam < int_mut){
                   pam_dist <- int_mut-end_pam
-                  cut_dist <- cut_pos-int_mut
+                  cut_dist <- cut_pos-int_mut+1
                 }
                 ##### PAM TO RIGHT OF MUT
                 if(start_pam > int_mut){
