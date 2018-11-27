@@ -1,7 +1,7 @@
 # CRISPR_guide_designer
 Finds guides for nuclease. 
 
-Requires a sequence, either a single (for all guides) or multiple sequences where a SNP occurs (for designing guides against SNPs)
+Requires a sequence, either a single (for all guides) or multiple sequences where a SNP occurs (for designing guides against SNPs).
 
 Requires a guide table.
 
