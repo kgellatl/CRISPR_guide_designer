@@ -1,6 +1,6 @@
 library(Biostrings)
 
-find_guides <- function(input, nuclease_table, stringency = 10, remove_wt = T){
+find_guides <- function(input, nuclease_table, stringency = 10, remove_wt = T, diagnostic = FALSE){
   #####################################
   # Parse Input
   #####################################
@@ -175,13 +175,22 @@ find_guides <- function(input, nuclease_table, stringency = 10, remove_wt = T){
   ##### FIND UNIQUE GUIDES FOR SINGLE INPUT
   if(ncol(dat) == 2){
     guides_format <- guides_format[,c(1,2,3,6)]
+    if(diagnostic == FALSE){
+      guides_format <- guides_format[,c(1,2,3,6)]
+    } else {
+      guides_format <- guides_format[,c(1,2,3,6,8)]
+    }
     full_guide <- apply(guides_format[,1:2],1,paste0, collapse = "")
     ogs <- unique(full_guide)
     keep <- match(ogs, full_guide)
     guides_format <- guides_format[keep,]
     ##### FIND UNIQUE GUIDES FOR MULTIPLE INPUT
   } else {
-    guides_format <- guides_format[,1:7]
+    if(diagnostic == FALSE){
+      guides_format <- guides_format[,1:7]
+    } else {
+      guides_format <- guides_format[,1:8]
+    }
     full_guide <- apply(guides_format[,1:2],1,paste0, collapse = "")
     ogs <- unique(full_guide)
     guides_format$Genotype <- as.character(guides_format$Genotype)
@@ -207,5 +216,5 @@ find_guides <- function(input, nuclease_table, stringency = 10, remove_wt = T){
   return(guides_format)
 }
 
-guides <- find_guides(mutant_data_2,nuclease_table = CRISPR_Nuclease_Table, remove_wt = F)
+guides <- find_guides(mutant_data_2,nuclease_table = CRISPR_Nuclease_Table, remove_wt = F, diagnostic = T)
 View(guides)
