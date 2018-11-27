@@ -1,6 +1,6 @@
 library(Biostrings)
 
-find_guides <- function(input, nuclease_table, stringency = 5, remove_wt = T){
+find_guides <- function(input, nuclease_table, stringency = 10, remove_wt = T){
   input2 <- as.character(unlist(input$V2)) # I hate factors... should just take your input and turn it into a vector
   dat <- matrix(ncol = length(input2), nrow = nchar(input2)[1]) # Now we make a dataframe
   colnames(dat) <- input$V1
@@ -9,7 +9,7 @@ find_guides <- function(input, nuclease_table, stringency = 5, remove_wt = T){
     int <- input2[i]
     dat[,i] <- unlist(strsplit(int, split = ""))
   }
-  
+
   # Now we query WHERE in our sequence a SNP occurs
   if(ncol(dat) > 1){
     positions <- apply(dat,1,unique)
@@ -23,7 +23,7 @@ find_guides <- function(input, nuclease_table, stringency = 5, remove_wt = T){
   } else {
     mut_pos <- seq(1:nrow(dat))
   }
-  
+
   for (i in 1:ncol(dat)) {
     int_seq <- dat[,i]
     int_seq <- paste0(int_seq, collapse = "")
@@ -33,15 +33,12 @@ find_guides <- function(input, nuclease_table, stringency = 5, remove_wt = T){
     dat <- cbind(dat, int_seq)
     colnames(dat)[ncol(dat)] <- paste0("RC_", colnames(dat)[i])
   }
-  
+
   guides <- c()
-  guides_f <- vector(mode = "list", length = nrow(nuclease_table))
-  guides_r <- vector(mode = "list", length = nrow(nuclease_table))
-  
   #####################################
   # ITERATE THROUGH EACH ROW OF THE NUCLEASE TABLE
   #####################################
-  for (i in 1:nrow(nuclease_table)) {  
+  for (i in 1:nrow(nuclease_table)) {
     int_nuc <- nuclease_table[i,]
     pam <- as.character(int_nuc$PAM)
     pam <- DNAString(pam)
@@ -51,7 +48,7 @@ find_guides <- function(input, nuclease_table, stringency = 5, remove_wt = T){
     #####################################
     # ITERATE THROUGH EACH SEQUENCE
     #####################################
-    for (j in 1:ncol(dat)) {  
+    for (j in 1:ncol(dat)) {
       int_seq <- dat[,j]
       int_seq <- paste0(int_seq, collapse = "")
       int_seq <- DNAString(int_seq)
@@ -60,40 +57,47 @@ find_guides <- function(input, nuclease_table, stringency = 5, remove_wt = T){
       # ITERATE THROUGH EACH PAM IF FOUND
       #####################################
       if(length(start(occurances@ranges)) > 0){
-        for (k in 1:length(start(occurances@ranges))) {  
+        for (k in 1:length(start(occurances@ranges))) {
           int_pam <- occurances@ranges[k]
           start_pam <- start(int_pam)  # PAM START
           end_pam <- end(int_pam)  # PAM END
           #####################################
-          # ITERATE THROUGH EACH MUTANT POSITION 
+          # ITERATE THROUGH EACH MUTANT POSITION
           #####################################
-          for(l in 1:length(mut_pos)){ 
+          for(l in 1:length(mut_pos)){
             if(j <= dim(input)[1]){  # MUTANT POSITION FOR + STRAND
-              int_mut <- mut_pos[l] 
+              int_mut <- mut_pos[l]
             } else {  # MUTANT POSITION FOR - STRAND
               int_mut <- (nrow(dat)-mut_pos[l])+1
             }
-            
+
             #####################################
             # THIS IS FOR THE MINUS CUTTERS CAS9
             #####################################
             if(cut_from_pam < 0){
               cut_pos <- start_pam+cut_from_pam
-              if(abs(cut_pos-int_mut) <= stringency){ #CHECK STRINGENCY
-                if((start_pam-guide_size) > 0){ #CHECK GUIDE BOUNDARY
+              if((start_pam-guide_size) > 0){ #CHECK GUIDE BOUNDARY
+
+                if(end_pam < int_mut){ #PAM TO LEFT OF MUT
+                  pam_dist <- int_mut-end_pam
                   cut_dist <- cut_pos-int_mut
-                  if(abs(cut_dist) == 1){
-                    cut_dist <- 0
-                  }
-                  if(end_pam < int_mut){ #PAM TO LEFT OF MUT
-                    pam_dist <- int_mut-end_pam
-                  }
-                  if(start_pam > int_mut){ #PAM TO RIGHT OF MUT
-                    pam_dist <- (start_pam-int_mut)-1
-                  }
-                  if(int_mut %in% seq(start_pam, end_pam)){ # MUT IN PAM
-                    pam_dist <- 0
-                  }
+                }
+
+                if(start_pam > int_mut){ #PAM TO RIGHT OF MUT
+                  pam_dist <- (int_mut-start_pam)+1
+                  cut_dist <- int_mut-cut_pos
+                }
+
+                if(int_mut %in% seq(start_pam, end_pam)){ # MUT IN PAM
+                  pam_dist <- 0
+                  cut_dist <- cut_pos-int_mut
+                }
+
+                if(abs(cut_dist) == 1){
+                  cut_dist <- 0
+                }
+
+                if(abs(cut_dist) <= stringency){
                   guide_start <- start_pam-guide_size
                   guide_end <- start_pam-1
                   seq <- subseq(int_seq, guide_start, guide_end)
@@ -113,23 +117,23 @@ find_guides <- function(input, nuclease_table, stringency = 5, remove_wt = T){
               #####################################
               # THIS IS FOR THE PLUS CUTTERS CPF1
               #####################################
-            } else { 
-              
-              
-              
-              
+            } else {
+
+
+
+
             }
           }
         }
       }
     }
   }
-  
+
   #####################################
   # BEGIN GUIDE PARSING
   #####################################
   guides <- as.data.frame(matrix(guides, ncol = 8, byrow = T))
-  colnames(guides) <- c("Spacer", "PAM", "Nuclease", "SNP_PAM", "Cut_SNP", "Strand", "Genotype")
+  colnames(guides) <- c("Spacer", "PAM", "Nuclease", "SNP_PAM", "SNP_Cut", "Strand", "Genotype")
   minus <- which(guides$Strand == "-")
   guides$Genotype[minus] <- matrix(unlist(strsplit(as.character(guides$Genotype[minus]), split = "_")), ncol = 2, byrow = T)[,2]
   View(guides)
