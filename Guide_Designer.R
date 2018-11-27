@@ -23,7 +23,7 @@ find_guides <- function(input, nuclease_table, stringency = 10, remove_wt = T){
   } else {
     mut_pos <- seq(1:nrow(dat))
   }
-
+  ##### GET REVERSE COMPLEMENT AS WELL
   for (i in 1:ncol(dat)) {
     int_seq <- dat[,i]
     int_seq <- paste0(int_seq, collapse = "")
@@ -33,10 +33,10 @@ find_guides <- function(input, nuclease_table, stringency = 10, remove_wt = T){
     dat <- cbind(dat, int_seq)
     colnames(dat)[ncol(dat)] <- paste0("RC_", colnames(dat)[i])
   }
-  guides <- c()
   #####################################
   # ITERATE THROUGH EACH ROW OF THE NUCLEASE TABLE
   #####################################
+  guides <- c()
   for (i in 1:nrow(nuclease_table)) {
     int_nuc <- nuclease_table[i,]
     pam <- as.character(int_nuc$PAM)
@@ -83,21 +83,21 @@ find_guides <- function(input, nuclease_table, stringency = 10, remove_wt = T){
                   pam_dist <- int_mut-end_pam
                   cut_dist <- cut_pos-int_mut
                 }
-                #PAM TO RIGHT OF MUT
+                ##### PAM TO RIGHT OF MUT
                 if(start_pam > int_mut){
                   pam_dist <- int_mut-start_pam
                   cut_dist <- (int_mut-cut_pos)+1
                 }
-                # MUT IN PAM
+                ##### MUT IN PAM
                 if(int_mut %in% seq(start_pam, end_pam)){
                   pam_dist <- 0
                   cut_dist <- cut_pos-int_mut
                 }
-                # DISTANCES FOR EDGE CUTS
+                ##### DISTANCES FOR EDGE CUTS
                 if(abs(cut_dist) == 1){
                   cut_dist <- 0
                 }
-                # SELECT ONLY THOSE FOR STRINGENCY
+                ##### SELECT ONLY THOSE FOR STRINGENCY
                 if(abs(cut_dist) <= stringency){
                   guide_start <- start_pam-guide_size
                   guide_end <- start_pam-1
