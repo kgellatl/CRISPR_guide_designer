@@ -84,11 +84,7 @@ find_guides <- function(input, nuclease_table, stringency = 10, remove_wt = T){
                 }
 
                 if(start_pam > int_mut){ #PAM TO RIGHT OF MUT
-                  if(j <= dim(input)[1]){  
-                    pam_dist <- (int_mut-start_pam)+1
-                  } else {  
-                    pam_dist <- int_mut-start_pam
-                  }
+                  pam_dist <- int_mut-start_pam
                   cut_dist <- (int_mut-cut_pos)+1
                 }
 
@@ -140,5 +136,8 @@ find_guides <- function(input, nuclease_table, stringency = 10, remove_wt = T){
   colnames(guides) <- c("Spacer", "PAM", "Nuclease", "SNP_PAM", "SNP_Cut", "Strand", "Genotype")
   minus <- which(guides$Strand == "-")
   guides$Genotype[minus] <- matrix(unlist(strsplit(as.character(guides$Genotype[minus]), split = "_")), ncol = 2, byrow = T)[,2]
-  View(guides)
+  return(guides)
 }
+
+guides <- find_guides(mutant_data_2,nuclease_table = CRISPR_Nuclease_Table)
+View(guides)
