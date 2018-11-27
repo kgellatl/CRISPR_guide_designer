@@ -207,5 +207,5 @@ find_guides <- function(input, nuclease_table, stringency = 10, remove_wt = T){
   return(guides_format)
 }
 
-guides <- find_guides(mutant_data_2[1,],nuclease_table = CRISPR_Nuclease_Table, remove_wt = F)
+guides <- find_guides(mutant_data_2,nuclease_table = CRISPR_Nuclease_Table, remove_wt = F)
 View(guides)
