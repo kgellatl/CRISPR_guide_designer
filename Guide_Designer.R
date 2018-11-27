@@ -1,6 +1,6 @@
 library(Biostrings)
 
-find_guides <- function(input, nuclease_table, stringency = 10, remove_wt = T, diagnostic = FALSE){
+find_guides <- function(input, nuclease_table, stringency = 6, remove_wt = T, diagnostic = FALSE){
   #####################################
   # Parse Input
   #####################################
@@ -119,13 +119,24 @@ find_guides <- function(input, nuclease_table, stringency = 10, remove_wt = T, d
               # THIS IS FOR THE PLUS CUTTERS CPF1
               #####################################
             } else {
-              cut_pos <- end_pam+cut_from_pam
+              cut_pos1 <- end_pam+cut_from_pam
+              cut_pos2 <- end_pam+cut_from_pam+5
+              if(cut_pos1 >= int_mut){
+                cut_pos <- cut_pos1
+              }
+              if(cut_pos2 <= int_mut){
+                cut_pos <- cut_pos2
+              }
               ##### CHECK GUIDE BOUNDARY
-              if(end_pam+guide_size < nrow(dat) && start_pam-guide_size > 0 ){
+              if(end_pam+guide_size < nrow(dat) && start_pam-guide_size > 0){
                 ##### PAM TO LEFT OF MUT
                 if(end_pam < int_mut){
                   pam_dist <- int_mut-end_pam
                   cut_dist <- cut_pos-int_mut+1
+
+                  if(int_mut %in% seq(cut_pos1, cut_pos2)){
+                    cut_dist <- 0
+                  }
                 }
                 ##### PAM TO RIGHT OF MUT
                 if(start_pam > int_mut){
@@ -194,14 +205,17 @@ find_guides <- function(input, nuclease_table, stringency = 10, remove_wt = T, d
     full_guide <- apply(guides_format[,1:2],1,paste0, collapse = "")
     ogs <- unique(full_guide)
     guides_format$Genotype <- as.character(guides_format$Genotype)
+    remove <- c()
     for (i in 1:length(ogs)) {
       int <- ogs[i]
       ind <- grep(paste0("^",int,"$"), full_guide)
       if(length(ind) > 1){
         new_title <- paste0(guides_format$Genotype[ind], collapse = "_")
         guides_format$Genotype[ind] <- new_title
+        remove <- c(remove, ind[2])
       }
     }
+    guides_format <- guides_format[-remove,]
     ##### REMOVE ONLY WT TARGETTING
     if(remove_wt){
       remove_ind <- grep(paste0("^", "WT", "$"), guides_format$Genotype)
@@ -216,5 +230,6 @@ find_guides <- function(input, nuclease_table, stringency = 10, remove_wt = T, d
   return(guides_format)
 }
 
-guides <- find_guides(mutant_data_2,nuclease_table = CRISPR_Nuclease_Table, remove_wt = F, diagnostic = T)
+guides <- find_guides(mutant_data_2, nuclease_table = CRISPR_Nuclease_Table, remove_wt = T, diagnostic = F, stringency = 10)
 View(guides)
+
