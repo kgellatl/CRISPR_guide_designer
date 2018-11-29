@@ -77,11 +77,11 @@ find_guides <- function(input, nuclease_table, stringency = 6, remove_wt = T, di
             if(cut_from_pam < 0){
               cut_pos <- start_pam+cut_from_pam
               ##### CHECK GUIDE BOUNDARY
-              if(start_pam-guide_size > 0 && end_pam+guide_size < nrow(dat)){
+              if(start_pam-guide_size > 0){
                 ##### PAM TO LEFT OF MUT
                 if(end_pam < int_mut){
                   pam_dist <- int_mut-end_pam
-                  cut_dist <- cut_pos-int_mut
+                  cut_dist <- (cut_pos-int_mut)-1
                 }
                 ##### PAM TO RIGHT OF MUT
                 if(start_pam > int_mut){
@@ -121,22 +121,24 @@ find_guides <- function(input, nuclease_table, stringency = 6, remove_wt = T, di
             } else {
               cut_pos1 <- end_pam+cut_from_pam
               cut_pos2 <- end_pam+cut_from_pam+5
-              if(cut_pos1 >= int_mut){
+              if(cut_pos1 > int_mut){
                 cut_pos <- cut_pos1
               }
-              if(cut_pos2 <= int_mut){
+              if(cut_pos2 < int_mut){
                 cut_pos <- cut_pos2
               }
+              if(cut_pos2 < int_mut){
+                cut_pos <- cut_pos2
+              }
+              if(cut_pos1 <= int_mut && cut_pos2 >= int_mut){
+                cut_pos <- int_mut
+              }
               ##### CHECK GUIDE BOUNDARY
-              if(end_pam+guide_size < nrow(dat) && start_pam-guide_size > 0){
+              if(end_pam+guide_size < nrow(dat)){
                 ##### PAM TO LEFT OF MUT
                 if(end_pam < int_mut){
                   pam_dist <- int_mut-end_pam
-                  cut_dist <- cut_pos-int_mut+1
-
-                  if(int_mut %in% seq(cut_pos1, cut_pos2)){
-                    cut_dist <- 0
-                  }
+                  cut_dist <- cut_pos-int_mut
                 }
                 ##### PAM TO RIGHT OF MUT
                 if(start_pam > int_mut){
@@ -180,7 +182,7 @@ find_guides <- function(input, nuclease_table, stringency = 6, remove_wt = T, di
   # FORMAT OUTPUT
   #####################################
   guides_format <- as.data.frame(matrix(guides, ncol = 8, byrow = T))
-  colnames(guides_format) <- c("Spacer", "PAM", "Nuclease", "SNP_PAM", "SNP_Cut", "Strand", "Genotype")
+  colnames(guides_format) <- c("Spacer", "PAM", "Nuclease", "PAM_to_SNP", "SNP_to_Cut", "Strand", "Genotype")
   minus <- which(guides_format$Strand == "-")
   guides_format$Genotype[minus] <- matrix(unlist(strsplit(as.character(guides_format$Genotype[minus]), split = "_")), ncol = 2, byrow = T)[,2]
   ##### FIND UNIQUE GUIDES FOR SINGLE INPUT
@@ -230,6 +232,4 @@ find_guides <- function(input, nuclease_table, stringency = 6, remove_wt = T, di
   return(guides_format)
 }
 
-guides <- find_guides(mutant_data_2, nuclease_table = CRISPR_Nuclease_Table, remove_wt = T, diagnostic = F, stringency = 10)
-View(guides)
-
+guides <- find_guides(IVS_II_837, nuclease_table = CRISPR_Nuclease_Table, remove_wt = F, diagnostic = T, stringency = 10)
