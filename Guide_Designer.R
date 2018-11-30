@@ -1,6 +1,6 @@
 library(Biostrings)
 
-find_guides <- function(input, nuclease_table, stringency = 6, remove_wt = T, diagnostic = FALSE){
+find_guides <- function(input, nuclease_table, stringency = 7, remove_wt = T, diagnostic = F){
   #####################################
   # Parse Input
   #####################################
@@ -90,10 +90,9 @@ find_guides <- function(input, nuclease_table, stringency = 6, remove_wt = T, di
                 ##### PAM TO RIGHT OF MUT
                 if(start_pam > int_mut){
                   pam_dist <- int_mut-start_pam
-                  cut_dist <- (int_mut-cut_pos)+1
-                  ##### DISTANCES FOR EDGE CUTS
-                  if(cut_dist == 1){
-                    cut_dist <- 0
+                  cut_dist <- (int_mut-cut_pos)
+                  if(cut_pos > int_mut){
+                    cut_dist <- cut_dist + 1
                   }
                 }
                 ##### MUT IN PAM
@@ -101,7 +100,6 @@ find_guides <- function(input, nuclease_table, stringency = 6, remove_wt = T, di
                   pam_dist <- 0
                   cut_dist <- cut_pos-int_mut
                 }
-
                 ##### SELECT ONLY THOSE FOR STRINGENCY
                 if(abs(cut_dist) <= stringency){
                   guide_start <- start_pam-guide_size
@@ -125,12 +123,9 @@ find_guides <- function(input, nuclease_table, stringency = 6, remove_wt = T, di
               #####################################
             } else {
               cut_pos1 <- end_pam+cut_from_pam
-              cut_pos2 <- end_pam+cut_from_pam+5
+              cut_pos2 <- end_pam+cut_from_pam+4
               if(cut_pos1 > int_mut){
                 cut_pos <- cut_pos1
-              }
-              if(cut_pos2 < int_mut){
-                cut_pos <- cut_pos2
               }
               if(cut_pos2 < int_mut){
                 cut_pos <- cut_pos2
@@ -143,14 +138,17 @@ find_guides <- function(input, nuclease_table, stringency = 6, remove_wt = T, di
                 ##### PAM TO LEFT OF MUT
                 if(end_pam < int_mut){
                   pam_dist <- int_mut-end_pam
-                  cut_dist <- cut_pos-int_mut
+                  cut_dist <- cut_pos-int_mut+1
+                  if(cut_pos > int_mut){
+                    cut_dist <- cut_dist-1
+                  }
                 }
-                ##### PAM TO RIGHT OF MUT
+                ##### PAM TO RIGHT OF MUT # VERY UNLIKELY BUT PROBABLY WRONT
                 if(start_pam > int_mut){
                   pam_dist <- start_pam-int_mut
                   cut_dist <- cut_pos-int_mut
                 }
-                ##### MUT IN PAM
+                ##### MUT IN PAM # VERY UNLIKELY BUT PROBABLY WRONT
                 if(int_mut %in% seq(start_pam, end_pam)){
                   pam_dist <- 0
                   cut_dist <- cut_pos-int_mut
@@ -236,6 +234,3 @@ find_guides <- function(input, nuclease_table, stringency = 6, remove_wt = T, di
   print(table(guides_format$Nuclease))
   return(guides_format)
 }
-
-guides <- find_guides(mutant_data_2, nuclease_table = CRISPR_Nuclease_Table, remove_wt = F, diagnostic = T, stringency = 10)
-View(guides)
