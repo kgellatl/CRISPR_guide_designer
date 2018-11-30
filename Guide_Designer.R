@@ -154,7 +154,7 @@ find_guides <- function(input, nuclease_table, stringency = 7, remove_wt = T, di
                   cut_dist <- cut_pos-int_mut
                 }
                 ##### DISTANCES FOR EDGE CUTS
-                if(abs(cut_dist) == 1){
+                if(cut_dist == 1){
                   cut_dist <- 0
                 }
                 ##### SELECT ONLY THOSE FOR STRINGENCY
