@@ -81,22 +81,27 @@ find_guides <- function(input, nuclease_table, stringency = 6, remove_wt = T, di
                 ##### PAM TO LEFT OF MUT
                 if(end_pam < int_mut){
                   pam_dist <- int_mut-end_pam
-                  cut_dist <- (cut_pos-int_mut)-1
+                  cut_dist <- cut_pos-int_mut
+                  ##### DISTANCES FOR EDGE CUTS
+                  if(abs(cut_dist) == 1){
+                    cut_dist <- 0
+                  }
                 }
                 ##### PAM TO RIGHT OF MUT
                 if(start_pam > int_mut){
                   pam_dist <- int_mut-start_pam
                   cut_dist <- (int_mut-cut_pos)+1
+                  ##### DISTANCES FOR EDGE CUTS
+                  if(cut_dist == 1){
+                    cut_dist <- 0
+                  }
                 }
                 ##### MUT IN PAM
                 if(int_mut %in% seq(start_pam, end_pam)){
                   pam_dist <- 0
                   cut_dist <- cut_pos-int_mut
                 }
-                ##### DISTANCES FOR EDGE CUTS
-                if(abs(cut_dist) == 1){
-                  cut_dist <- 0
-                }
+
                 ##### SELECT ONLY THOSE FOR STRINGENCY
                 if(abs(cut_dist) <= stringency){
                   guide_start <- start_pam-guide_size
@@ -232,4 +237,5 @@ find_guides <- function(input, nuclease_table, stringency = 6, remove_wt = T, di
   return(guides_format)
 }
 
-guides <- find_guides(IVS_II_837, nuclease_table = CRISPR_Nuclease_Table, remove_wt = F, diagnostic = T, stringency = 10)
+guides <- find_guides(mutant_data_2, nuclease_table = CRISPR_Nuclease_Table, remove_wt = F, diagnostic = T, stringency = 10)
+View(guides)
